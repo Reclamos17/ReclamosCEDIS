@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="appTitle">Reclamos CEDIS</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{
+            --primary:#1a56db;
+            --primary-dark:#1e429f;
+            --secondary:#f59e0b;
+            --success:#0e9f6e;
+            --danger:#e02424;
+            --warning:#f59e0b;
+            --gray-50:#f9fafb;
+            --gray-100:#f3f4f6;
+            --gray-200:#e5e7eb;
+            --gray-600:#4b5563;
+            --gray-800:#1f2937;
+        }
+        
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--gray-50);color:var(--gray-800);line-height:1.6}
+        
+        /* LOGIN SCREEN */
+        .login-screen{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);padding:20px;position:relative}
+        .login-container{background:white;padding:40px;border-radius:16px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);width:100%;max-width:420px;position:relative;z-index:1}
+        .app-icon{width:90px;height:90px;background:linear-gradient(135deg,var(--primary) 0%,var(--secondary) 100%);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:40px;color:white}
+        .login-container h1{text-align:center;margin-bottom:8px;font-size:28px;font-weight:700}
+        .subtitle{text-align:center;color:var(--gray-600);margin-bottom:32px;font-size:14px}
+        
+        /* SECRET TRIGGER AREA */
+        .secret-trigger{position:fixed;top:0;right:0;width:50px;height:50px;cursor:pointer;z-index:10}
+        .secret-trigger:hover{background:rgba(255,255,255,0.1)}
+        
+        .module-simple{text-align:center;padding:30px;background:var(--gray-50);border-radius:12px;border:2px solid var(--gray-200);cursor:pointer;transition:all 0.2s;margin-bottom:20px}
+        .module-simple:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:0 4px 6px -1px rgba(0,0,0,0.1)}
+        .module-simple .icon{font-size:48px;margin-bottom:12px}
+        .module-simple .label{font-size:18px;font-weight:700;margin-bottom:4px}
+        .module-simple .desc{font-size:14px;color:var(--gray-600)}
+        
+        .hidden-modules{display:none;margin-top:20px;padding-top:20px;border-top:2px dashed var(--gray-300)}
+        .hidden-modules.visible{display:block;animation:fadeIn 0.3s ease}
+        
+        @keyframes fadeIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+        
+        .module-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px}
+        .module-btn{padding:20px;border:2px solid var(--gray-200);border-radius:12px;background:white;cursor:pointer;text-align:center;transition:all 0.2s}
+        .module-btn:hover{border-color:var(--primary);background:#eff6ff}
+        .module-btn .icon{font-size:32px;margin-bottom:8px}
+        .module-btn .label{font-weight:600;font-size:14px}
+        .module-btn .desc{font-size:12px;color:var(--gray-600);margin-top:4px}
+        
+        .form-group{margin-bottom:20px}
+        .form-group label{display:block;margin-bottom:8px;font-weight:600;font-size:14px}
+        .form-group input,.form-group select{width:100%;padding:12px 16px;border:2px solid var(--gray-200);border-radius:8px;font-size:16px}
+        
+        .btn{padding:12px 24px;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%}
+        .btn-primary{background:var(--primary);color:white}
+        .btn-primary:hover{background:var(--primary-dark)}
+        .btn-secondary{background:var(--gray-100);color:var(--gray-800);border:2px solid var(--gray-200)}
+        
+        .hidden{display:none!important}
+        
+        /* APP LAYOUT */
+        .app-container{min-height:100vh;display:flex;flex-direction:column}
+        .app-header{height:64px;background:white;border-bottom:1px solid var(--gray-200);display:flex;justify-content:space-between;align-items:center;padding:0 24px;position:sticky;top:0;z-index:100;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1)}
+        .header-left{display:flex;align-items:center;gap:16px}
+        .header-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--primary) 0%,var(--secondary) 100%);border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-size:20px}
+        .header-title{font-size:20px;font-weight:700}
+        
+        .nav-menu{display:flex;gap:4px}
+        .nav-item{padding:8px 16px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:500;transition:all 0.2s}
+        .nav-item:hover{background:var(--gray-100)}
+        .nav-item.active{background:var(--primary);color:white}
+        
+        .header-right{display:flex;align-items:center;gap:16px}
+        .user-info{display:flex;align-items:center;gap:12px}
+        .user-avatar{width:36px;height:36px;border-radius:50%;background:var(--primary);color:white;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px}
+        .role-badge{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase}
+        .role-badge.sucursal{background:#dbeafe;color:#1e40af}
+        .role-badge.cedis{background:#d1fae5;color:#065f46}
+        .role-badge.stats{background:#fef3c7;color:#92400e}
+        .role-badge.admin{background:#fce7f3;color:#9d174d}
+        
+        .app-content{flex:1;padding:24px;max-width:1400px;margin:0 auto;width:100%}
+        
+        /* STATS */
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;margin-bottom:24px}
+        .stat-card{background:white;padding:24px;border-radius:12px;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);border-left:4px solid var(--primary)}
+        .stat-card.pendiente{border-left-color:var(--secondary)}
+        .stat-card.resuelto{border-left-color:var(--success)}
+        .stat-value{font-size:36px;font-weight:700}
+        .stat-label{font-size:14px;color:var(--gray-600);margin-top:8px}
+        
+        /* CLAIMS */
+        .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;gap:16px;flex-wrap:wrap}
+        .search-box{flex:1;min-width:300px}
+        .search-box input{width:100%;padding:12px 16px;border:2px solid var(--gray-200);border-radius:8px;font-size:16px}
+        
+        .filters{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap}
+        .filter-chip{padding:10px 20px;border-radius:20px;background:white;border:2px solid var(--gray-200);cursor:pointer;font-size:14px;font-weight:500}
+        .filter-chip.active{background:var(--primary);color:white;border-color:var(--primary)}
+        
+        .claims-list{display:flex;flex-direction:column;gap:16px}
+        .claim-card{background:white;padding:20px;border-radius:12px;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);cursor:pointer;transition:all 0.2s;border-left:4px solid transparent}
+        .claim-card:hover{transform:translateX(4px)}
+        .claim-card.pendiente{border-left-color:var(--secondary)}
+        .claim-card.proceso{border-left-color:var(--primary)}
+        .claim-card.resuelto{border-left-color:var(--success)}
+        .claim-header{display:flex;justify-content:space-between;margin-bottom:12px}
+        .claim-id{font-weight:700;color:var(--primary);font-size:14px}
+        .claim-status{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;text-transform:uppercase}
+        .claim-status.pendiente{background:#fef3c7;color:#92400e}
+        .claim-status.proceso{background:#dbeafe;color:#1e40af}
+        .claim-status.resuelto{background:#d1fae5;color:#065f46}
+        .sucursal-tag{font-size:12px;color:var(--gray-600);background:var(--gray-100);padding:4px 12px;border-radius:20px}
+        
+        /* FORMS */
+        .form-section{background:white;padding:24px;border-radius:12px;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);margin-bottom:24px}
+        .form-section h3{margin-bottom:20px;font-size:18px;font-weight:700}
+        .form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px}
+        
+        .photo-upload-area{border:3px dashed var(--gray-300);border-radius:12px;padding:40px;text-align:center;cursor:pointer;background:var(--gray-50)}
+        .photo-upload-area:hover{border-color:var(--primary);background:#eff6ff}
+        .photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:16px;margin-top:20px}
+        .photo-item{position:relative;background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);aspect-ratio:1}
+        .photo-item img{width:100%;height:100%;object-fit:cover}
+        .photo-delete{position:absolute;top:8px;right:8px;width:28px;height:28px;background:var(--danger);color:white;border:none;border-radius:50%;cursor:pointer}
+        
+        /* DETAIL */
+        .detail-layout{display:grid;grid-template-columns:1fr 350px;gap:24px}
+        .detail-main{background:white;padding:32px;border-radius:12px;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1)}
+        .detail-sidebar{display:flex;flex-direction:column;gap:24px}
+        .admin-panel{background:linear-gradient(135deg,#f0f9ff 0%,#e0f2fe 100%);border:2px solid #bae6fd;border-radius:12px;padding:24px}
+        .status-buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+        .status-btn{padding:16px;border:2px solid var(--gray-200);border-radius:12px;background:white;cursor:pointer;font-weight:600;text-align:center}
+        .status-btn.active.pendiente{border-color:var(--secondary);background:#fef3c7;color:#92400e}
+        .status-btn.active.proceso{border-color:var(--primary);background:#dbeafe;color:#1e40af}
+        .status-btn.active.resuelto{border-color:var(--success);background:#d1fae5;color:#065f46}
+        
+        /* CONFIG */
+        .config-nav{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+        .config-nav-item{padding:12px 24px;border-radius:8px;background:white;border:2px solid var(--gray-200);cursor:pointer;font-weight:600}
+        .config-nav-item.active{background:var(--primary);color:white;border-color:var(--primary)}
+        .config-section{background:white;padding:32px;border-radius:12px;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);margin-bottom:24px}
+        .config-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px}
+        .config-item{background:var(--gray-50);padding:20px;border-radius:12px}
+        .config-item label{display:block;font-weight:600;margin-bottom:10px}
+        .config-item input,.config-item select{width:100%;padding:12px;border:2px solid var(--gray-200);border-radius:8px}
+        
+        .color-picker{width:60px;height:44px;border:2px solid var(--gray-200);border-radius:8px;cursor:pointer}
+        
+        .user-list{display:flex;flex-direction:column;gap:12px;margin-top:16px}
+        .user-item{display:flex;justify-content:space-between;align-items:center;padding:16px;background:var(--gray-50);border-radius:12px}
+        
+        /* TOAST */
+        .toast-container{position:fixed;bottom:24px;right:24px;z-index:2000;display:flex;flex-direction:column;gap:12px}
+        .toast{background:var(--gray-800);color:white;padding:16px 24px;border-radius:12px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);animation:slideIn 0.3s ease}
+        .toast.success{background:var(--success)}
+        @keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+        
+        @media(max-width:768px){
+            .detail-layout{grid-template-columns:1fr}
+            .module-grid{grid-template-columns:1fr}
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SECRET TRIGGER (esquina superior derecha) -->
+    <div class="secret-trigger" onclick="toggleHiddenModules()" title=""></div>
+
+    <!-- LOGIN SCREEN -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-container">
+            <div class="app-icon">📦</div>
+            <h1>Reclamos CEDIS</h1>
+            <p class="subtitle">Sistema de Gestión de Reclamos</p>
+            
+            <!-- MÓDULO SUCURSAL (visible por defecto) -->
+            <div class="module-simple" onclick="selectModule('sucursal')">
+                <div class="icon">🏪</div>
+                <div class="label">Acceso Sucursales</div>
+                <div class="desc">Sucursal 01 - 24</div>
+            </div>
+            
+            <!-- MÓDULOS OCULTOS -->
+            <div class="hidden-modules" id="hiddenModules">
+                <p style="text-align:center;color:var(--gray-600);margin-bottom:16px;font-size:14px">🔐 Módulos Administrativos</p>
+                <div class="module-grid">
+                    <div class="module-btn" onclick="selectModule('cedis')">
+                        <div class="icon">🏭</div>
+                        <div class="label">CEDIS</div>
+                        <div class="desc">Gestión de estatus</div>
+                    </div>
+                    <div class="module-btn" onclick="selectModule('stats')">
+                        <div class="icon">📊</div>
+                        <div class="label">Estadísticas</div>
+                        <div class="desc">24 Sucursales</div>
+                    </div>
+                    <div class="module-btn" onclick="selectModule('admin')">
+                        <div class="icon">⚙️</div>
+                        <div class="label">Configuración</div>
+                        <div class="desc">Super Admin</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FORM LOGIN -->
+            <div id="loginFormContainer" class="hidden">
+                <div style="margin-bottom:20px">
+                    <button class="btn btn-secondary" onclick="backToModules()" style="width:auto;padding:8px 16px;font-size:14px">← Volver</button>
+                </div>
+                
+                <div id="loginSucursal">
+                    <div class="form-group">
+                        <label>Sucursal</label>
+                        <select id="selectSucursal" onchange="updateSucursalLogin()">
+                            <option value="">Seleccionar sucursal...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Usuario</label>
+                        <input type="text" id="sucursalUser" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Contraseña</label>
+                        <input type="password" id="sucursalPass" placeholder="Contraseña">
+                    </div>
+                    <button class="btn btn-primary" onclick="loginSucursal()">Ingresar</button>
+                </div>
+
+                <div id="loginCedis" class="hidden">
+                    <div class="form-group">
+                        <label>Usuario CEDIS</label>
+                        <input type="text" id="cedisUser" value="cedis">
+                    </div>
+                    <div class="form-group">
+                        <label>Contraseña</label>
+                        <input type="password" id="cedisPass" placeholder="Contraseña">
+                    </div>
+                    <button class="btn btn-primary" onclick="loginCedis()">Ingresar</button>
+                </div>
+
+                <div id="loginStats" class="hidden">
+                    <div class="form-group">
+                        <label>Usuario</label>
+                        <input type="text" id="statsUser" value="admin">
+                    </div>
+                    <div class="form-group">
+                        <label>Contraseña</label>
+                        <input type="password" id="statsPass" placeholder="Contraseña">
+                    </div>
+                    <button class="btn btn-primary" onclick="loginStats()">Ingresar</button>
+                </div>
+
+                <div id="loginAdmin" class="hidden">
+                    <div class="form-group">
+                        <label>Super Admin</label>
+                        <input type="text" id="adminUser" value="super">
+                    </div>
+                    <div class="form-group">
+                        <label>Contraseña</label>
+                        <input type="password" id="adminPass" placeholder="Contraseña">
+                    </div>
+                    <button class="btn btn-primary" onclick="loginAdmin()">Ingresar</button>
+                </div>
+            </div>
+            
+            <p style="margin-top:20px;font-size:12px;color:var(--gray-600);text-align:center">
+                Sucursal: sucursalXX / passXX | Admin: super / super2024
+            </p>
+        </div>
+    </div>
+
+    <!-- APP CONTAINER -->
+    <div id="appContainer" class="app-container hidden">
+        <header class="app-header">
+            <div class="header-left">
+                <div class="header-icon">📦</div>
+                <span class="header-title">Reclamos CEDIS</span>
+                <span id="roleBadge" class="role-badge sucursal">SUCURSAL</span>
+            </div>
+            <nav class="nav-menu" id="mainNav">
+                <div class="nav-item active" onclick="showView('dashboard')" id="navDashboard">📋 Reclamos</div>
+                <div class="nav-item hidden" onclick="showView('stats')" id="navStats">📊 Estadísticas</div>
+                <div class="nav-item hidden" onclick="showView('config')" id="navConfig">⚙️ Config</div>
+            </nav>
+            <div class="header-right">
+                <div class="user-info">
+                    <div>
+                        <div style="font-weight:600;font-size:14px" id="displayUserName">Usuario</div>
+                        <div style="font-size:12px;color:var(--gray-600)" id="displayUserRole">Rol</div>
+                    </div>
+                    <div class="user-avatar" id="userAvatar">U</div>
+                </div>
+                <button class="btn btn-secondary" onclick="logout()" style="width:auto;padding:8px 16px;font-size:14px">Salir</button>
+            </div>
+        </header>
+
+        <main class="app-content" id="mainContent">
+            
+            <!-- DASHBOARD -->
+            <div id="viewDashboard">
+                <div class="stats-grid" id="quickStats"></div>
+                
+                <div class="toolbar" id="toolbarSucursal">
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="Buscar reclamos..." onkeyup="filterClaims()">
+                    </div>
+                    <button class="btn btn-primary" id="btnNewClaim" onclick="showView('newClaim')" style="width:auto">+ Nuevo Reclamo</button>
+                </div>
+
+                <div class="toolbar hidden" id="toolbarAdmin">
+                    <div class="search-box">
+                        <input type="text" id="searchInputAdmin" placeholder="Buscar en 24 sucursales..." onkeyup="filterClaims()">
+                    </div>
+                    <div class="filter-chip" style="background:white">
+                        <select onchange="filterBySucursal(this.value)" style="border:none;background:transparent;font-size:14px;cursor:pointer">
+                            <option value="todas">Todas las sucursales</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="filters">
+                    <div class="filter-chip active" onclick="setFilter('todos',this)">Todos</div>
+                    <div class="filter-chip" onclick="setFilter('pendiente',this)">⏳ Pendientes</div>
+                    <div class="filter-chip" onclick="setFilter('proceso',this)">🔄 En Proceso</div>
+                    <div class="filter-chip" onclick="setFilter('resuelto',this)">✅ Resueltos</div>
+                </div>
+
+                <div class="claims-list" id="claimsList"></div>
+            </div>
+
+            <!-- ESTADÍSTICAS -->
+            <div id="viewStats" class="hidden">
+                <h2 style="margin-bottom:24px">📊 Estadísticas - 24 Sucursales</h2>
+                <div class="stats-grid" id="fullStats"></div>
+                
+                <div class="form-section">
+                    <h3>Top Sucursales por Reclamos</h3>
+                    <div id="chartSucursales"></div>
+                </div>
+                
+                <h3 style="margin:24px 0 16px">Resumen por Sucursal</h3>
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px" id="gridSucursales"></div>
+            </div>
+
+            <!-- CONFIGURACIÓN -->
+            <div id="viewConfig" class="hidden">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+                    <h2>⚙️ Configuración del Sistema</h2>
+                    <button class="btn btn-primary" onclick="saveAllConfig()" style="width:auto">💾 Guardar Cambios</button>
+                </div>
+
+                <div class="config-nav">
+                    <button class="config-nav-item active" onclick="showConfigTab('general',this)">🏢 General</button>
+                    <button class="config-nav-item" onclick="showConfigTab('appearance',this)">🎨 Apariencia</button>
+                    <button class="config-nav-item" onclick="showConfigTab('users',this)">👥 Usuarios</button>
+                    <button class="config-nav-item" onclick="showConfigTab('advanced',this)">⚡ Avanzado</button>
+                </div>
+
+                <div id="configGeneral" class="config-section">
+                    <h3 style="margin-bottom:20px">🏢 Configuración General</h3>
+                    <div class="config-grid">
+                        <div class="config-item">
+                            <label>Nombre de la Aplicación</label>
+                            <input type="text" id="cfgAppName" value="Reclamos CEDIS">
+                        </div>
+                        <div class="config-item">
+                            <label>Nombre del CEDIS</label>
+                            <input type="text" id="cfgCedisName" value="CEDIS Central">
+                        </div>
+                        <div class="config-item">
+                            <label>Prefijo de IDs</label>
+                            <input type="text" id="cfgIdPrefix" value="REC-2024-">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="configAppearance" class="config-section hidden">
+                    <h3 style="margin-bottom:20px">🎨 Personalización Visual</h3>
+                    <div class="config-grid">
+                        <div class="config-item">
+                            <label>Color Principal</label>
+                            <div style="display:flex;align-items:center;gap:12px">
+                                <input type="color" class="color-picker" id="cfgPrimaryColor" value="#1a56db" onchange="previewColor(this.value)">
+                                <span id="colorValue">#1a56db</span>
+                            </div>
+                        </div>
+                        <div class="config-item">
+                            <label>Icono de la App</label>
+                            <select id="cfgAppIcon" onchange="document.querySelector('.app-icon').textContent=this.value">
+                                <option value="📦">📦 Caja</option>
+                                <option value="🏭">🏭 Fábrica</option>
+                                <option value="🏬">🏬 Tienda</option>
+                                <option value="📋">📋 Clipboard</option>
+                                <option value="⚙️">⚙️ Engranaje</option>
+                                <option value="🚚">🚚 Camión</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="configUsers" class="config-section hidden">
+                    <h3 style="margin-bottom:20px">👥 Usuarios de Sucursales (24)</h3>
+                    <div class="user-list" id="userListSucursales"></div>
+                    
+                    <h3 style="margin:32px 0 20px">🔐 Usuarios Especiales</h3>
+                    <div class="config-grid">
+                        <div class="config-item">
+                            <label>Usuario CEDIS</label>
+                            <input type="text" id="cfgCedisUser" value="cedis">
+                        </div>
+                        <div class="config-item">
+                            <label>Contraseña CEDIS</label>
+                            <input type="text" id="cfgCedisPass" value="cedis2024">
+                        </div>
+                        <div class="config-item">
+                            <label>Usuario Estadísticas</label>
+                            <input type="text" id="cfgStatsUser" value="admin">
+                        </div>
+                        <div class="config-item">
+                            <label>Contraseña Estadísticas</label>
+                            <input type="text" id="cfgStatsPass" value="stats2024">
+                        </div>
+                        <div class="config-item">
+                            <label>Super Admin</label>
+                            <input type="text" id="cfgAdminUser" value="super">
+                        </div>
+                        <div class="config-item">
+                            <label>Contraseña Super Admin</label>
+                            <input type="text" id="cfgAdminPass" value="super2024">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="configAdvanced" class="config-section hidden">
+                    <h3 style="margin-bottom:20px">⚡ Configuración Avanzada</h3>
+                    <div class="config-grid">
+                        <div class="config-item">
+                            <label>Máximo de fotos por reclamo</label>
+                            <input type="number" id="cfgMaxPhotos" value="10" min="1" max="50">
+                        </div>
+                        <div class="config-item">
+                            <label>Tamaño máximo de foto (MB)</label>
+                            <input type="number" value="10" min="1" max="50">
+                        </div>
+                    </div>
+                    <div style="margin-top:32px;padding:20px;background:#fee2e2;border-radius:12px">
+                        <h4 style="color:var(--danger);margin-bottom:12px">⚠️ Zona de Peligro</h4>
+                        <button class="btn btn-danger" onclick="if(confirm('¿Restaurar configuración de fábrica?'))location.reload()">🗑️ Restaurar Default</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NUEVO RECLAMO -->
+            <div id="viewNewClaim" class="hidden">
+                <div style="margin-bottom:24px">
+                    <button class="btn btn-secondary" onclick="showView('dashboard')" style="width:auto">← Volver</button>
+                </div>
+                
+                <form onsubmit="submitClaim(event)">
+                    <div class="form-section">
+                        <h3>📍 Información de la Sucursal</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Sucursal que reporta *</label>
+                                <select id="newClaimSucursal" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Prioridad *</label>
+                                <select required>
+                                    <option value="baja">🟢 Baja</option>
+                                    <option value="media" selected>🟡 Media</option>
+                                    <option value="alta">🔴 Alta</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>📦 Productos</h3>
+                        <div id="productsContainer">
+                            <div style="background:var(--gray-50);padding:20px;border-radius:12px;display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px">
+                                <div class="form-group" style="flex:1;min-width:140px">
+                                    <label>SKU *</label>
+                                    <input type="text" placeholder="PROD-001" required>
+                                </div>
+                                <div class="form-group" style="flex:2;min-width:200px">
+                                    <label>Descripción *</label>
+                                    <input type="text" placeholder="Nombre del producto" required>
+                                </div>
+                                <div class="form-group" style="width:140px">
+                                    <label>Cantidad *</label>
+                                    <div style="display:flex;gap:8px">
+                                        <input type="number" step="0.01" min="0.01" value="1" required style="flex:1">
+                                        <select style="width:60px;padding:12px 8px">
+                                            <option>u</option>
+                                            <option>kg</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-secondary" onclick="addProduct()" style="width:auto">+ Agregar producto</button>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>📸 Evidencia Fotográfica</h3>
+                        <div class="photo-upload-area" onclick="document.getElementById('photoInput').click()">
+                            <div style="font-size:48px;margin-bottom:16px">📷</div>
+                            <p style="font-weight:600;margin-bottom:8px">Haz clic para seleccionar fotos</p>
+                            <p style="color:var(--gray-600)">O arrastra imágenes aquí</p>
+                            <input type="file" id="photoInput" multiple accept="image/*" style="display:none" onchange="handlePhotos(event)">
+                        </div>
+                        <div class="photo-grid" id="photoGrid"></div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>📝 Detalles</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Acción Esperada *</label>
+                                <select required>
+                                    <option value="reposicion">🔄 Reposición del material</option>
+                                    <option value="traslado">🚚 Traslado</option>
+                                    <option value="301">📄 301</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Descripción detallada *</label>
+                            <textarea rows="4" required></textarea>
+                        </div>
+                    </div>
+
+                    <div style="display:flex;justify-content:flex-end;gap:16px">
+                        <button type="button" class="btn btn-secondary" onclick="showView('dashboard')" style="width:auto">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" style="width:auto;min-width:200px">📤 Enviar Reclamo</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- DETALLE -->
+            <div id="viewDetail" class="hidden">
+                <div style="margin-bottom:24px">
+                    <button class="btn btn-secondary" onclick="showView('dashboard')" style="width:auto">← Volver</button>
+                </div>
+                <div class="detail-layout" id="detailContent"></div>
+            </div>
+
+        </main>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // ==================== CONFIGURACIÓN ====================
+        let SYSTEM_CONFIG = {
+            appName: 'Reclamos CEDIS',
+            cedisName: 'CEDIS Central',
+            idPrefix: 'REC-2024-',
+            primaryColor: '#1a56db',
+            appIcon: '📦',
+            maxPhotos: 10,
+            
+            // 24 SUCURSALES (nomenclatura nueva)
+            sucursales: Array.from({length: 24}, (_, i) => {
+                const num = String(i + 1).padStart(2, '0');
+                return {
+                    id: `S${num}`,
+                    nombre: `Sucursal ${num}`,
+                    user: `sucursal${num}`,
+                    pass: `pass${num}`,
+                    zona: ['Centro','Norte','Sur','Oriente'][i % 4]
+                };
+            }),
+            
+            cedisUser: 'cedis',
+            cedisPass: 'cedis2024',
+            statsUser: 'admin',
+            statsPass: 'stats2024',
+            adminUser: 'super',
+            adminPass: 'super2024'
+        };
+
+        let currentUser = null;
+        let currentRole = null;
+        let currentSucursal = null;
+        let claimsData = [];
+        let currentFilter = 'todos';
+        let currentPhotos = [];
+
+        // ==================== INICIALIZACIÓN ====================
+        function init() {
+            generateSampleData();
+            populateSucursalSelect();
+        }
+
+        function generateSampleData() {
+            for(let i = 0; i < 200; i++) {
+                const suc = SYSTEM_CONFIG.sucursales[Math.floor(Math.random() * 24)];
+                claimsData.push({
+                    id: `${SYSTEM_CONFIG.idPrefix}${String(i+1).padStart(4,'0')}`,
+                    sucursalId: suc.id,
+                    tienda: suc.nombre,
+                    estado: ['pendiente','proceso','resuelto'][Math.floor(Math.random()*3)],
+                    prioridad: ['baja','media','alta'][Math.floor(Math.random()*3)],
+                    tipo: 'Producto Dañado',
+                    accion: 'reposicion',
+                    fecha: new Date(2024, Math.floor(Math.random()*12), Math.floor(Math.random()*28)+1).toISOString(),
+                    productos: [{sku:`SKU-${1000+i}`, nombre:`Producto ${i+1}`, cantidad:(Math.random()*10+1).toFixed(2), unidad:'u', motivo:'Reclamo'}],
+                    descripcion: 'Descripción del reclamo',
+                    fotos: []
+                });
+            }
+        }
+
+        function populateSucursalSelect() {
+            const select = document.getElementById('selectSucursal');
+            select.innerHTML = '<option value="">Seleccionar...</option>';
+            SYSTEM_CONFIG.sucursales.forEach(s => {
+                select.innerHTML += `<option value="${s.id}">${s.id} - ${s.nombre}</option>`;
+            });
+        }
+
+        // ==================== FUNCIÓN SECRETA ====================
+        let hiddenModulesVisible = false;
+        function toggleHiddenModules() {
+            hiddenModulesVisible = !hiddenModulesVisible;
+            document.getElementById('hiddenModules').classList.toggle('visible', hiddenModulesVisible);
+            if(hiddenModulesVisible) {
+                showToast('🔓 Módulos administrativos desbloqueados', 'success');
+            }
+        }
+
+        // También activar con tecla secreta (Ctrl + Shift + A)
+        document.addEventListener('keydown', function(e) {
+            if(e.ctrlKey && e.shiftKey && e.key === 'A') {
+                e.preventDefault();
+                toggleHiddenModules();
+            }
+        });
+
+        // ==================== LOGIN ====================
+        function selectModule(module) {
+            document.querySelector('.module-simple').classList.add('hidden');
+            document.getElementById('hiddenModules').classList.add('hidden');
+            document.getElementById('loginFormContainer').classList.remove('hidden');
+            
+            ['loginSucursal','loginCedis','loginStats','loginAdmin'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            
+            document.getElementById('login' + (module === 'sucursal' ? 'Sucursal' : module.charAt(0).toUpperCase() + module.slice(1))).classList.remove('hidden');
+        }
+
+        function backToModules() {
+            document.getElementById('loginFormContainer').classList.add('hidden');
+            document.querySelector('.module-simple').classList.remove('hidden');
+            if(hiddenModulesVisible) {
+                document.getElementById('hiddenModules').classList.remove('hidden');
+            }
+        }
+
+        function updateSucursalLogin() {
+            const id = document.getElementById('selectSucursal').value;
+            if(id) {
+                const suc = SYSTEM_CONFIG.sucursales.find(s => s.id === id);
+                document.getElementById('sucursalUser').value = suc.user;
+            }
+        }
+
+        function loginSucursal() {
+            const id = document.getElementById('selectSucursal').value;
+            const pass = document.getElementById('sucursalPass').value;
+            if(!id) { showToast('Selecciona una sucursal', 'error'); return; }
+            
+            const suc = SYSTEM_CONFIG.sucursales.find(s => s.id === id);
+            if(pass === suc.pass) {
+                currentUser = suc;
+                currentRole = 'sucursal';
+                currentSucursal = id;
+                startApp();
+            } else {
+                showToast('Contraseña incorrecta', 'error');
+            }
+        }
+
+        function loginCedis() {
+            const user = document.getElementById('cedisUser').value;
+            const pass = document.getElementById('cedisPass').value;
+            if(user === SYSTEM_CONFIG.cedisUser && pass === SYSTEM_CONFIG.cedisPass) {
+                currentUser = {nombre: 'CEDIS', id: 'CEDIS'};
+                currentRole = 'cedis';
+                currentSucursal = 'todas';
+                startApp();
+            } else {
+                showToast('Credenciales incorrectas', 'error');
+            }
+        }
+
+        function loginStats() {
+            const user = document.getElementById('statsUser').value;
+            const pass = document.getElementById('statsPass').value;
+            if(user === SYSTEM_CONFIG.statsUser && pass === SYSTEM_CONFIG.statsPass) {
+                currentUser = {nombre: 'Analista', id: 'STATS'};
+                currentRole = 'stats';
+                currentSucursal = 'todas';
+                startApp();
+            } else {
+                showToast('Credenciales incorrectas', 'error');
+            }
+        }
+
+        function loginAdmin() {
+            const user = document.getElementById('adminUser').value;
+            const pass = document.getElementById('adminPass').value;
+            if(user === SYSTEM_CONFIG.adminUser && pass === SYSTEM_CONFIG.adminPass) {
+                currentUser = {nombre: 'Super Admin', id: 'ADMIN'};
+                currentRole = 'admin';
+                currentSucursal = 'todas';
+                startApp();
+            } else {
+                showToast('Credenciales incorrectas', 'error');
+            }
+        }
+
+        function startApp() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('appContainer').classList.remove('hidden');
+            setupUI();
+            showView('dashboard');
+            showToast(`Bienvenido, ${currentUser.nombre}`, 'success');
+        }
+
+        function setupUI() {
+            document.getElementById('displayUserName').textContent = currentUser.nombre;
+            document.getElementById('userAvatar').textContent = currentUser.id.substring(0,2);
+            
+            const badge = document.getElementById('roleBadge');
+            const navStats = document.getElementById('navStats');
+            const navConfig = document.getElementById('navConfig');
+            const btnNew = document.getElementById('btnNewClaim');
+            const toolbarSuc = document.getElementById('toolbarSucursal');
+            const toolbarAdmin = document.getElementById('toolbarAdmin');
+            
+            // Poblar selector de sucursales en toolbar admin
+            const filterSelect = document.querySelector('#toolbarAdmin select');
+            filterSelect.innerHTML = '<option value="todas">Todas las sucursales</option>';
+            SYSTEM_CONFIG.sucursales.forEach(s => {
+                filterSelect.innerHTML += `<option value="${s.id}">${s.id} - ${s.nombre}</option>`;
+            });
+            
+            if(currentRole === 'sucursal') {
+                badge.textContent = 'SUCURSAL';
+                badge.className = 'role-badge sucursal';
+                navStats.classList.add('hidden');
+                navConfig.classList.add('hidden');
+                btnNew.classList.remove('hidden');
+                toolbarSuc.classList.remove('hidden');
+                toolbarAdmin.classList.add('hidden');
+                
+                // Poblar selector de nueva reclamación
+                const newSelect = document.getElementById('newClaimSucursal');
+                newSelect.innerHTML = `<option value="${currentUser.id}" selected>${currentUser.id} - ${currentUser.nombre}</option>`;
+                
+            } else if(currentRole === 'cedis') {
+                badge.textContent = 'CEDIS';
+                badge.className = 'role-badge cedis';
+                navStats.classList.add('hidden');
+                navConfig.classList.add('hidden');
+                btnNew.classList.add('hidden');
+                toolbarSuc.classList.add('hidden');
+                toolbarAdmin.classList.remove('hidden');
+                
+            } else if(currentRole === 'stats') {
+                badge.textContent = 'ANALISTA';
+                badge.className = 'role-badge stats';
+                navStats.classList.remove('hidden');
+                navConfig.classList.add('hidden');
+                btnNew.classList.add('hidden');
+                toolbarSuc.classList.add('hidden');
+                toolbarAdmin.classList.remove('hidden');
+                
+            } else if(currentRole === 'admin') {
+                badge.textContent = 'ADMIN';
+                badge.className = 'role-badge admin';
+                navStats.classList.remove('hidden');
+                navConfig.classList.remove('hidden');
+                btnNew.classList.add('hidden');
+                toolbarSuc.classList.add('hidden');
+                toolbarAdmin.classList.remove('hidden');
+                loadConfig();
+            }
+            
+            document.getElementById('displayUserRole').textContent = 
+                currentRole === 'sucursal' ? currentUser.id :
+                currentRole === 'cedis' ? 'Administrador CEDIS' :
+                currentRole === 'stats' ? 'Analista' : 'Super Administrador';
+        }
+
+        // ==================== NAVEGACIÓN ====================
+        function showView(view) {
+            ['viewDashboard','viewStats','viewConfig','viewNewClaim','viewDetail'].forEach(v => {
+                document.getElementById(v).classList.add('hidden');
+            });
+            document.getElementById('view' + view.charAt(0).toUpperCase() + view.slice(1)).classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            if(view === 'dashboard') {
+                document.getElementById('navDashboard').classList.add('active');
+                renderDashboard();
+            } else if(view === 'stats') {
+                document.getElementById('navStats').classList.add('active');
+                renderStats();
+            } else if(view === 'config') {
+                document.getElementById('navConfig').classList.add('active');
+            }
+        }
+
+        // ==================== DASHBOARD ====================
+        function renderDashboard() {
+            let filtered = currentSucursal === 'todas' ? claimsData : claimsData.filter(c => c.sucursalId === currentSucursal);
+            
+            const total = filtered.length;
+            const pendientes = filtered.filter(c => c.estado === 'pendiente').length;
+            const proceso = filtered.filter(c => c.estado === 'proceso').length;
+            const resueltos = filtered.filter(c => c.estado === 'resuelto').length;
+            
+            document.getElementById('quickStats').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${total}</div>
+                    <div class="stat-label">Total Reclamos</div>
+                </div>
+                <div class="stat-card pendiente">
+                    <div class="stat-value" style="color:var(--secondary)">${pendientes}</div>
+                    <div class="stat-label">Pendientes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color:var(--primary)">${proceso}</div>
+                    <div class="stat-label">En Proceso</div>
+                </div>
+                <div class="stat-card resuelto">
+                    <div class="stat-value" style="color:var(--success)">${resueltos}</div>
+                    <div class="stat-label">Resueltos</div>
+                </div>
+            `;
+            
+            renderClaims();
+        }
+
+        function renderClaims() {
+            const search = (document.getElementById('searchInput') || document.getElementById('searchInputAdmin')).value.toLowerCase();
+            let filtered = currentSucursal === 'todas' ? claimsData : claimsData.filter(c => c.sucursalId === currentSucursal);
+            
+            if(currentFilter !== 'todos') filtered = filtered.filter(c => c.estado === currentFilter);
+            if(search) filtered = filtered.filter(c => c.id.toLowerCase().includes(search) || c.tienda.toLowerCase().includes(search));
+            
+            const estados = {pendiente:'Pendiente',proceso:'En Proceso',resuelto:'Resuelto'};
+            
+            document.getElementById('claimsList').innerHTML = filtered.map(c => `
+                <div class="claim-card ${c.estado}" onclick="showDetail('${c.id}')">
+                    <div class="claim-header">
+                        <div>
+                            <span class="claim-id">${c.id}</span>
+                            ${currentRole !== 'sucursal' ? `<span class="sucursal-tag">${c.sucursalId}</span>` : ''}
+                        </div>
+                        <span class="claim-status ${c.estado}">${estados[c.estado]}</span>
+                    </div>
+                    <div style="font-weight:600;margin-bottom:8px">${c.tipo}</div>
+                    <div class="claim-meta">
+                        <span>📅 ${new Date(c.fecha).toLocaleDateString('es-ES')}</span>
+                        <span>🏪 ${c.tienda}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function setFilter(status, el) {
+            currentFilter = status;
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            renderClaims();
+        }
+
+        function filterBySucursal(id) {
+            currentSucursal = id;
+            renderDashboard();
+        }
+
+        // ==================== DETALLE ====================
+        function showDetail(id) {
+            const c = claimsData.find(x => x.id === id);
+            if(!c) return;
+            
+            showView('detail');
+            const estados = {pendiente:'Pendiente',proceso:'En Proceso',resuelto:'Resuelto'};
+            const canEdit = currentRole === 'cedis' || currentRole === 'admin';
+            
+            const adminPanel = canEdit ? `
+                <div class="detail-sidebar">
+                    <div class="admin-panel">
+                        <h3>🔄 Cambiar Estatus</h3>
+                        <div class="status-buttons">
+                            <button class="status-btn pendiente ${c.estado==='pendiente'?'active':''}" onclick="updateStatus('${c.id}','pendiente')">⏳ Pendiente</button>
+                            <button class="status-btn proceso ${c.estado==='proceso'?'active':''}" onclick="updateStatus('${c.id}','proceso')">🔄 En Proceso</button>
+                            <button class="status-btn resuelto ${c.estado==='resuelto'?'active':''}" onclick="updateStatus('${c.id}','resuelto')">✅ Resuelto</button>
+                        </div>
+                    </div>
+                </div>
+            ` : '<div class="detail-sidebar"></div>';
+            
+            document.getElementById('detailContent').innerHTML = `
+                <div class="detail-main">
+                    <div class="detail-header">
+                        <div>
+                            <div style="display:flex;gap:12px;margin-bottom:12px">
+                                <span class="claim-id">${c.id}</span>
+                                <span class="claim-status ${c.estado}">${estados[c.estado]}</span>
+                            </div>
+                            <h1>${c.tipo}</h1>
+                            <p style="color:var(--gray-600)">${c.sucursalId} - ${c.tienda}</p>
+                        </div>
+                    </div>
+                    <div class="form-section">
+                        <h3>📋 Información</h3>
+                        <p><strong>Prioridad:</strong> ${c.prioridad}</p>
+                        <p><strong>Acción:</strong> ${c.accion}</p>
+                        <p><strong>Fecha:</strong> ${new Date(c.fecha).toLocaleString('es-ES')}</p>
+                    </div>
+                    <div class="form-section">
+                        <h3>📝 Descripción</h3>
+                        <p>${c.descripcion}</p>
+                    </div>
+                </div>
+                ${adminPanel}
+            `;
+        }
+
+        function updateStatus(id, status) {
+            const c = claimsData.find(x => x.id === id);
+            if(c && confirm('¿Cambiar estatus?')) {
+                c.estado = status;
+                showToast('Estatus actualizado', 'success');
+                showDetail(id);
+                renderDashboard();
+            }
+        }
+
+        // ==================== NUEVO RECLAMO ====================
+        function addProduct() {
+            const div = document.createElement('div');
+            div.style.cssText = 'background:var(--gray-50);padding:20px;border-radius:12px;display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px';
+            div.innerHTML = `
+                <div class="form-group" style="flex:1;min-width:140px"><label>SKU *</label><input type="text" required></div>
+                <div class="form-group" style="flex:2;min-width:200px"><label>Descripción *</label><input type="text" required></div>
+                <div class="form-group" style="width:140px">
+                    <label>Cantidad *</label>
+                    <div style="display:flex;gap:8px">
+                        <input type="number" step="0.01" value="1" required style="flex:1">
+                        <select style="width:60px"><option>u</option><option>kg</option></select>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()" style="width:auto;align-self:end">🗑️</button>
+            `;
+            document.getElementById('productsContainer').appendChild(div);
+        }
+
+        function handlePhotos(e) {
+            Array.from(e.target.files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = evt => {
+                    currentPhotos.push({nombre: file.name, url: evt.target.result});
+                    updatePhotoGrid();
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function updatePhotoGrid() {
+            document.getElementById('photoGrid').innerHTML = currentPhotos.map((p,i) => `
+                <div class="photo-item">
+                    <img src="${p.url}" alt="${p.nombre}">
+                    <button class="photo-delete" onclick="currentPhotos.splice(${i},1);updatePhotoGrid()">✕</button>
+                </div>
+            `).join('');
+        }
+
+        function submitClaim(e) {
+            e.preventDefault();
+            const sucursalId = document.getElementById('newClaimSucursal').value;
+            const suc = SYSTEM_CONFIG.sucursales.find(s => s.id === sucursalId);
+            
+            const nuevo = {
+                id: `${SYSTEM_CONFIG.idPrefix}${String(claimsData.length+1).padStart(4,'0')}`,
+                sucursalId: sucursalId,
+                tienda: suc.nombre,
+                estado: 'pendiente',
+                prioridad: 'media',
+                tipo: 'Producto Dañado',
+                accion: 'reposicion',
+                fecha: new Date().toISOString(),
+                descripcion: 'Nuevo reclamo',
+                productos: [{sku:'NEW', nombre:'Producto', cantidad:'1', unidad:'u', motivo:'Reclamo'}],
+                fotos: currentPhotos
+            };
+            
+            claimsData.unshift(nuevo);
+            currentPhotos = [];
+            showToast('Reclamo creado: ' + nuevo.id, 'success');
+            showView('dashboard');
+        }
+
+        // ==================== ESTADÍSTICAS ====================
+        function renderStats() {
+            const total = claimsData.length;
+            const pendientes = claimsData.filter(c => c.estado === 'pendiente').length;
+            const proceso = claimsData.filter(c => c.estado === 'proceso').length;
+            const resueltos = claimsData.filter(c => c.estado === 'resuelto').length;
+            
+            document.getElementById('fullStats').innerHTML = `
+                <div class="stat-card"><div class="stat-value">${total}</div><div class="stat-label">Total</div></div>
+                <div class="stat-card"><div class="stat-value">${(total/24).toFixed(1)}</div><div class="stat-label">Promedio/Sucursal</div></div>
+                <div class="stat-card"><div class="stat-value">${((resueltos/total)*100).toFixed(1)}%</div><div class="stat-label">Resueltos</div></div>
+                <div class="stat-card"><div class="stat-value" style="color:var(--danger)">${claimsData.filter(c=>c.prioridad==='alta'&&c.estado!=='resuelto').length}</div><div class="stat-label">Urgentes</div></div>
+            `;
+            
+            // Chart
+            const sucStats = SYSTEM_CONFIG.sucursales.map(s => ({
+                ...s,
+                total: claimsData.filter(c => c.sucursalId === s.id).length
+            })).sort((a,b) => b.total - a.total).slice(0, 10);
+            
+            const maxVal = Math.max(...sucStats.map(s => s.total));
+            
+            document.getElementById('chartSucursales').innerHTML = sucStats.map(s => `
+                <div class="chart-bar">
+                    <div class="chart-label">${s.id}</div>
+                    <div style="flex:1;height:32px;background:var(--gray-100);border-radius:16px;overflow:hidden;margin:0 16px">
+                        <div style="height:100%;width:${(s.total/maxVal)*100}%;background:var(--primary);border-radius:16px;display:flex;align-items:center;justify-content:flex-end;padding-right:12px;color:white;font-size:12px;font-weight:600">${s.total}</div>
+                    </div>
+                    <div style="width:50px;text-align:right;font-weight:600">${s.total}</div>
+                </div>
+            `).join('');
+            
+            // Grid
+            document.getElementById('gridSucursales').innerHTML = SYSTEM_CONFIG.sucursales.map(s => {
+                const stats = {
+                    total: claimsData.filter(c => c.sucursalId === s.id).length,
+                    pendientes: claimsData.filter(c => c.sucursalId === s.id && c.estado === 'pendiente').length
+                };
+                return `
+                    <div style="background:white;padding:16px;border-radius:12px;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);cursor:pointer" onclick="filterBySucursal('${s.id}');showView('dashboard')">
+                        <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:8px">${s.id}</div>
+                        <div style="font-weight:600;margin-bottom:8px">${s.nombre}</div>
+                        <div style="display:flex;justify-content:space-between;font-size:14px">
+                            <span>📋 ${stats.total}</span>
+                            <span style="color:var(--secondary)">⏳ ${stats.pendientes}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ==================== CONFIGURACIÓN ====================
+        function loadConfig() {
+            document.getElementById('cfgAppName').value = SYSTEM_CONFIG.appName;
+            document.getElementById('cfgCedisName').value = SYSTEM_CONFIG.cedisName;
+            document.getElementById('cfgIdPrefix').value = SYSTEM_CONFIG.idPrefix;
+            document.getElementById('cfgPrimaryColor').value = SYSTEM_CONFIG.primaryColor;
+            document.getElementById('cfgCedisUser').value = SYSTEM_CONFIG.cedisUser;
+            document.getElementById('cfgCedisPass').value = SYSTEM_CONFIG.cedisPass;
+            document.getElementById('cfgStatsUser').value = SYSTEM_CONFIG.statsUser;
+            document.getElementById('cfgStatsPass').value = SYSTEM_CONFIG.statsPass;
+            document.getElementById('cfgAdminUser').value = SYSTEM_CONFIG.adminUser;
+            document.getElementById('cfgAdminPass').value = SYSTEM_CONFIG.adminPass;
+            
+            // Lista de sucursales
+            document.getElementById('userListSucursales').innerHTML = SYSTEM_CONFIG.sucursales.map((s,i) => `
+                <div class="user-item">
+                    <div>
+                        <div style="font-weight:600">${s.id} - ${s.nombre}</div>
+                        <div style="font-size:13px;color:var(--gray-600)">Usuario: ${s.user} | Zona: ${s.zona}</div>
+                    </div>
+                    <button class="btn btn-secondary" style="width:auto;padding:8px 16px;font-size:14px" onclick="editSucursal(${i})">Editar</button>
+                </div>
+            `).join('');
+        }
+
+        function showConfigTab(tab, btn) {
+            document.querySelectorAll('.config-nav-item').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            ['configGeneral','configAppearance','configUsers','configAdvanced'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById('config' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.remove('hidden');
+        }
+
+        function previewColor(color) {
+            document.getElementById('colorValue').textContent = color;
+            document.documentElement.style.setProperty('--primary', color);
+        }
+
+        function saveAllConfig() {
+            SYSTEM_CONFIG.appName = document.getElementById('cfgAppName').value;
+            SYSTEM_CONFIG.cedisName = document.getElementById('cfgCedisName').value;
+            SYSTEM_CONFIG.idPrefix = document.getElementById('cfgIdPrefix').value;
+            SYSTEM_CONFIG.primaryColor = document.getElementById('cfgPrimaryColor').value;
+            SYSTEM_CONFIG.cedisUser = document.getElementById('cfgCfgCedisUser').value;
+            SYSTEM_CONFIG.cedisPass = document.getElementById('cfgCedisPass').value;
+            SYSTEM_CONFIG.statsUser = document.getElementById('cfgStatsUser').value;
+            SYSTEM_CONFIG.statsPass = document.getElementById('cfgStatsPass').value;
+            SYSTEM_CONFIG.adminUser = document.getElementById('cfgAdminUser').value;
+            SYSTEM_CONFIG.adminPass = document.getElementById('cfgAdminPass').value;
+            
+            // Aplicar
+            document.title = SYSTEM_CONFIG.appName;
+            document.querySelector('.header-title').textContent = SYSTEM_CONFIG.appName;
+            document.querySelector('.app-icon').textContent = document.getElementById('cfgAppIcon').value;
+            
+            showToast('Configuración guardada', 'success');
+        }
+
+        function editSucursal(index) {
+            const s = SYSTEM_CONFIG.sucursales[index];
+            const newPass = prompt(`Nueva contraseña para ${s.id} - ${s.nombre}:`, s.pass);
+            if(newPass) {
+                s.pass = newPass;
+                loadConfig();
+                showToast('Contraseña actualizada', 'success');
+            }
+        }
+
+        // ==================== UTILIDADES ====================
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        function logout() {
+            location.reload();
+        }
+
+        // Inicializar
+        init();
+    </script>
+</body>
+</html>
